@@ -1,1 +1,65 @@
-# Student-Enrollment-Portal
+# KodeCamp 6.0 — Stage 3: Student Enrollment Portal
+
+A React app that fetches a student roster from an external API and lets you enroll new students via a form demonstrating both **controlled** and **uncontrolled** input patterns.
+
+---
+
+## Tech Stack
+
+- React 18 + Vite
+- Plain CSS (no framework)
+- [RandomUser API](https://randomuser.me/api/?results=6&nat=us,gb) for roster data
+
+---
+
+## Component-Based Architecture & the Virtual DOM
+
+**Component-based architecture** means splitting a UI into isolated, reusable pieces — each component owns its own markup, logic, and style. Instead of one giant HTML file, you build small units (`Header`, `StudentCard`, `EnrollForm`) and compose them like LEGO bricks. This makes code easier to read, test, and maintain because a change to `StudentCard` only affects cards, nowhere else.
+
+**The Virtual DOM** is React's internal copy of the real DOM, stored in memory as a plain JavaScript object tree. When state changes, React re-renders the component into this virtual tree, diffs it against the previous version (reconciliation), and only patches the *actual* DOM nodes that changed. This avoids expensive full-page repaints and keeps the UI fast even with many updates.
+
+---
+
+## API & Loading/Error Handling
+
+**API used:** `https://randomuser.me/api/?results=6&nat=us,gb`
+
+Each user object supplies `name.first`, `name.last`, `email`, `picture.medium`, and `login.uuid` (used as the unique `id`). Each result is assigned a random score (40–100) and a track from the `TRACKS` array by index.
+
+**Handling:**
+- `useState(true)` for `loading` — shows a `<StatusMessage type="loading" />` spinner while the fetch is in flight.
+- `try/catch/finally` around the `fetch` call — if the response is not OK (`!response.ok`) an error is thrown and caught; the `error` state is set and `<StatusMessage type="error" />` is shown.
+- `finally` always sets `loading` to `false` so the app never stays stuck in a loading state.
+- On failure, `SEED_STUDENTS` is still shown — the app never crashes.
+
+---
+
+## Controlled vs Uncontrolled Forms
+
+| | Controlled | Uncontrolled |
+|---|---|---|
+| **Value stored in** | React state (`useState`) | The DOM itself |
+| **How to read value** | From state variable | Via `ref.current.value` |
+| **React directive** | `value` + `onChange` | `defaultValue` + `ref` |
+| **Live reactivity** | Yes — every keystroke updates state | No — React doesn't know until you read the ref |
+| **Best for** | Live validation, preview text, dependent fields | Simple one-off reads (e.g. a file input, a one-time form) |
+
+**In this app:**
+- `firstName`, `lastName`, `track`, and `score` are **controlled** — they power the live "Preview:" line that updates as you type, proving React owns these values.
+- `email` and the `isActive` checkbox are **uncontrolled** — their values are read from `emailRef.current.value` and `isActiveRef.current.checked` only at submit time.
+
+---
+
+## Getting Started
+
+```bash
+npm install
+npm run dev
+```
+
+---
+
+## Submission
+
+- **GitHub:** _[link here](https://github.com/Ladunnitegbe/Student-Enrollment-Portal.git)_
+- **Live:** _Vercel/Netlify link here_
