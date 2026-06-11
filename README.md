@@ -14,9 +14,9 @@ A React app that fetches a student roster from an external API and lets you enro
 
 ## Component-Based Architecture & the Virtual DOM
 
-**Component-based architecture** means splitting a UI into isolated, reusable pieces — each component owns its own markup, logic, and style. Instead of one giant HTML file, you build small units (`Header`, `StudentCard`, `EnrollForm`) and compose them like LEGO bricks. This makes code easier to read, test, and maintain because a change to `StudentCard` only affects cards, nowhere else.
+**Component-based architecture** means splitting a UI into isolated, reusable pieces — each component owns its own markup, logic, and style. Instead of one giant HTML file, you build small units (`Header`, `StudentCard`, `EnrollForm` and `StatusMessage`) and compose them like LEGO bricks. This makes code easier to read, test, debug and maintain because a change to `StudentCard` only affects cards, nowhere else. These components can be reused across different parts of the application, making development faster and reducing code duplication.
 
-**The Virtual DOM** is React's internal copy of the real DOM, stored in memory as a plain JavaScript object tree. When state changes, React re-renders the component into this virtual tree, diffs it against the previous version (reconciliation), and only patches the *actual* DOM nodes that changed. This avoids expensive full-page repaints and keeps the UI fast even with many updates.
+**The Virtual DOM** is React's internal copy of the real DOM, stored in memory as a plain JavaScript object tree. When state changes, React re-renders the component into this virtual tree, diffs it against the previous version (reconciliation), and only patches the *actual* DOM nodes that changed. This avoids expensive full-page repaints and keeps the UI fast even with many updates. Selective updating minimizes expensive DOM operations, improves rendering performance, and provides a smoother user experience, particularly in applications with frequent state changes or large datasets.
 
 ---
 
@@ -26,11 +26,12 @@ A React app that fetches a student roster from an external API and lets you enro
 
 Each user object supplies `name.first`, `name.last`, `email`, `picture.medium`, and `login.uuid` (used as the unique `id`). Each result is assigned a random score (40–100) and a track from the `TRACKS` array by index.
 
-**Handling:**
+**Loading and Error Handling Strategy:**
 - `useState(true)` for `loading` — shows a `<StatusMessage type="loading" />` spinner while the fetch is in flight.
 - `try/catch/finally` around the `fetch` call — if the response is not OK (`!response.ok`) an error is thrown and caught; the `error` state is set and `<StatusMessage type="error" />` is shown.
 - `finally` always sets `loading` to `false` so the app never stays stuck in a loading state.
 - On failure, `SEED_STUDENTS` is still shown — the app never crashes.
+- This approach improves resilience, fault tolerance, and overall user experience by ensuring the application continues functioning even when external services are unavailable.
 
 ---
 
@@ -48,6 +49,8 @@ Each user object supplies `name.first`, `name.last`, `email`, `picture.medium`, 
 - `firstName`, `lastName`, `track`, and `score` are **controlled** — they power the live "Preview:" line that updates as you type, proving React owns these values.
 - `email` and the `isActive` checkbox are **uncontrolled** — their values are read from `emailRef.current.value` and `isActiveRef.current.checked` only at submit time.
 
+By combining both controlled and uncontrolled inputs, the application demonstrates practical use cases for each pattern while balancing responsiveness and simplicity.
+
 ---
 
 ## Getting Started
@@ -61,5 +64,5 @@ npm run dev
 
 ## Submission
 
-- **GitHub:** _[link here](https://github.com/Ladunnitegbe/Student-Enrollment-Portal.git)_
-- **Live:** _Vercel/Netlify link here_
+- **GitHub:** _(https://github.com/Ladunnitegbe/Student-Enrollment-Portal.git)_
+- **Live:** _(https://student-enrollment-portal-alpha.vercel.app/)_

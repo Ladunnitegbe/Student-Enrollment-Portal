@@ -2,16 +2,15 @@ import { useState, useRef } from "react";
 import Button from "./Button";
 
 const EnrollForm = ({ tracks, onEnroll }) => {
-  // CONTROLLED inputs — value lives in React state
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [track, setTrack] = useState(tracks[0] ?? "");
   const [score, setScore] = useState("");
 
-  // Validation errors
+ 
   const [errors, setErrors] = useState({});
 
-  // UNCONTROLLED inputs — value lives in the DOM, read via ref on submit
+
   const emailRef = useRef(null);
   const isActiveRef = useRef(null);
 
@@ -41,7 +40,7 @@ const EnrollForm = ({ tracks, onEnroll }) => {
       return;
     }
 
-    // Read uncontrolled values from DOM via refs
+    
     const email = emailRef.current.value;
     const isActive = isActiveRef.current.checked;
 
@@ -58,14 +57,14 @@ const EnrollForm = ({ tracks, onEnroll }) => {
 
     onEnroll(newStudent);
 
-    // Reset controlled state
+   
     setFirstName("");
     setLastName("");
     setTrack(tracks[0] ?? "");
     setScore("");
     setErrors({});
 
-    // Reset uncontrolled fields via refs
+   
     if (emailRef.current) emailRef.current.value = "";
     if (isActiveRef.current) isActiveRef.current.checked = true;
   };
@@ -78,7 +77,6 @@ const EnrollForm = ({ tracks, onEnroll }) => {
       <h2 className="section-title">Enroll New Student</h2>
 
       <form className="enroll-form" onSubmit={handleSubmit} noValidate>
-        {/* CONTROLLED inputs */}
         <fieldset className="form-fieldset">
           <legend className="form-legend">Controlled Inputs (React state)</legend>
 
@@ -139,7 +137,6 @@ const EnrollForm = ({ tracks, onEnroll }) => {
             </div>
           </div>
 
-          {/* Live preview — proof React owns these values */}
           <div className="preview-line">
             {previewReady ? (
               <span>
@@ -158,7 +155,6 @@ const EnrollForm = ({ tracks, onEnroll }) => {
           </div>
         </fieldset>
 
-        {/* UNCONTROLLED inputs */}
         <fieldset className="form-fieldset">
           <legend className="form-legend">Uncontrolled Inputs (DOM ref)</legend>
 
