@@ -1,3 +1,8 @@
+# KodeCamp 6.0 — Stage 4: Student Enrollment Portal with Routing
+
+An extension of the Stage 3 Student Enrollment Portal, now with full client-side routing via **React Router v6**.
+
+
 # KodeCamp 6.0 — Stage 3: Student Enrollment Portal
 
 A React app that fetches a student roster from an external API and lets you enroll new students via a form demonstrating both **controlled** and **uncontrolled** input patterns.
@@ -7,8 +12,56 @@ A React app that fetches a student roster from an external API and lets you enro
 ## Tech Stack
 
 - React 18 + Vite
+- React Router DOM v6
 - Plain CSS (no framework)
 - [RandomUser API](https://randomuser.me/api/?results=6&nat=us,gb) for roster data
+
+---
+
+## Project Structure
+
+```
+src/
+├── App.jsx               ← Routes + lifted roster state
+├── App.css               ← All styles
+├── main.jsx              ← BrowserRouter wraps <App />
+├── components/
+│   ├── Navbar.jsx        ← NavLink nav, shows on every page
+│   ├── Badge.jsx
+│   ├── Button.jsx        ← Functional component
+│   ├── ClassButton.jsx   ← Class component (refresh button)
+│   ├── EnrollForm.jsx    ← Controlled + uncontrolled inputs
+│   ├── StatBar.jsx
+│   ├── StatusMessage.jsx
+│   ├── StudentCard.jsx   ← Name links to /students/:id
+│   └── StudentList.jsx
+└── pages/
+    ├── HomePage.jsx          → /
+    ├── StudentDetailPage.jsx → /students/:id
+    ├── EnrollPage.jsx        → /enroll
+    └── NotFoundPage.jsx      → * (catch-all 404)
+```
+
+---
+
+## Routing
+
+| Route | Component | Description |
+|---|---|---|
+| `/` | `HomePage` | Roster grid + refresh button |
+| `/students/:id` | `StudentDetailPage` | Full profile for one student |
+| `/enroll` | `EnrollPage` | Enroll form; redirects to `/` on success |
+| `*` | `NotFoundPage` | Friendly 404 catch-all |
+
+**Key decisions:**
+- `<BrowserRouter>` wraps `<App />` in `main.jsx` — the app never sees a HashRouter.
+- `<Navbar />` is rendered **outside** `<Routes>` so it persists across every route.
+- Roster state lives in `App.jsx` so a student enrolled on `/enroll` immediately appears on `/` after `useNavigate("/")` fires.
+- `<NavLink>` with an `isActive` callback applies `.nav-link--active` on the current route; the `end` prop on the Home link prevents it staying active when on child routes.
+- `<Link>` (never `<a href>`) is used for all internal navigation — no full-page reloads.
+
+
+
 
 ---
 
@@ -57,6 +110,7 @@ By combining both controlled and uncontrolled inputs, the application demonstrat
 
 ```bash
 npm install
+npm install react-router-dom
 npm run dev
 ```
 

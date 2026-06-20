@@ -1,15 +1,15 @@
 import { useState, useEffect } from "react";
+import { Routes, Route } from "react-router-dom";
 import "./App.css";
-import Header from "./components/Header.jsx";
-import Button from "./components/Button";
-import ClassButton from "./components/ClassButton";
-import StudentList from "./components/StudentList";
-import EnrollForm from "./components/EnrollForm";
-import StatusMessage from "./components/StatusMessage";
+import Navbar from "./components/Navbar";
+import HomePage from "./pages/HomePage";
+import StudentDetailPage from "./pages/StudentDetailPage";
+import EnrollPage from "./pages/EnrollPage";
+import NotFoundPage from "./pages/NotFoundPage";
 
-const TRACKS = ["Frontend", "Backend", "Mobile", "Data"];
+export const TRACKS = ["Frontend", "Backend", "Mobile", "Data"];
 
-const SEED_STUDENTS = [
+export const SEED_STUDENTS = [
   {
     id: "seed-1",
     firstName: "Amara",
@@ -32,7 +32,7 @@ const SEED_STUDENTS = [
   },
 ];
 
-const getGrade = (score) => {
+export const getGrade = (score) => {
   if (score >= 80) return "A";
   if (score >= 70) return "B";
   if (score >= 60) return "C";
@@ -40,12 +40,13 @@ const getGrade = (score) => {
   return "F";
 };
 
-const getAverage = (list) =>
+export const getAverage = (list) =>
   list.length === 0
     ? 0
     : list.reduce((total, s) => total + s.score, 0) / list.length;
 
 const App = () => {
+  // Roster state is lifted here so enrolled students appear on every route
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -72,7 +73,7 @@ const App = () => {
           email: user.email,
           avatar: user.picture.medium,
           track: TRACKS[index % TRACKS.length],
-          score: Math.floor(Math.random() * 61) + 40, // 40–100
+          score: Math.floor(Math.random() * 61) + 40,
           isActive: true,
         }));
 
@@ -96,43 +97,41 @@ const App = () => {
     setFetchTrigger((n) => n + 1);
   };
 
+
   const enriched = students.map((s) => ({ ...s, grade: getGrade(s.score) }));
-  const average = getAverage(students);
 
   return (
     <div className="app">
-      <Header
-        title="KodeCamp 6.0 — Enrollment Portal"
+      <Navbar
         studentCount={students.length}
-        averageScore={average}
+        averageScore={getAverage(students)}
       />
 
       <main className="main-content">
-        <EnrollForm tracks={TRACKS} onEnroll={handleEnroll} />
-
-        <section className="roster-section">
-          {loading ? (
-            <StatusMessage type="loading" />
-          ) : (
-            <>
-              {error && <StatusMessage type="error" />}
-
-              <StudentList students={enriched} title="Student Roster">
-                <div className="roster-footer">
-                  <p className="footer-text">
-                    End of roster — {students.length} total
-                  </p>
-                  {/* ClassButton rendered here — demonstrates class component pattern */}
-                  <ClassButton
-                    title="↺ Refresh Roster"
-                    onClick={handleRefresh}
-                    className="btn-refresh"
-                  />
-                </div>
-              </StudentList>
-            </>
-          )}
-        </section>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <HomePage
+                students={enriched}
+                loading={loading}
+                error={error}
+                onRefresh={handleRefresh}
+              />
+            }
+          />
+          <Route
+            path="/students/:id"
+            element={<StudentDetailPage students={enriched} />}
+          />
+          <Route
+            path="/enroll"
+            element={
+              <EnrollPage tracks={TRACKS} onEnroll={handleEnroll} />
+            }
+          />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
       </main>
     </div>
   );
