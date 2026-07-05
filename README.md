@@ -1,3 +1,172 @@
+# KodeCamp 6.0 — Stage 5: Styling, Hooks & Context API
+
+An upgrade of the Stage 4 Student Enrollment Portal. The routing, roster
+fetch, and enrollment flow from Stage 4 all still work — this stage adds
+professional styling (one distinct method per component), a theme system,
+global state via Context + `useReducer`, memoization, and two custom hooks.
+
+---
+
+## Tech Stack
+
+- React 18 + Vite
+- React Router DOM v6
+- Tailwind CSS v4 (`@tailwindcss/vite`)
+- Styled-Components
+- Material UI (MUI) + Emotion
+- CSS Modules
+- [RandomUser API](https://randomuser.me/api/?results=6&nat=us,gb) for roster data
+
+---
+
+## Project Structure
+
+```
+src/
+├── App.jsx                    ← Routes only — no more roster state here
+├── App.css                    ← Shared classes for non-demo components
+├── index.css                  ← Tailwind entry + theme CSS variables
+├── main.jsx                   ← BrowserRouter + StudentProvider wrap <App />
+├── context/
+│   └── StudentContext.jsx     ← useReducer store + useStudents() hook
+├── hooks/
+│   ├── useFetch.js            ← generic fetch-on-mount hook
+│   └── useLocalStorage.js     ← useState that persists to localStorage
+├── styles/
+│   ├── theme.js                ← color + spacing tokens
+│   └── StudentCard.module.css  ← CSS Modules for StudentCard
+├── components/
+│   ├── Navbar.jsx              ← Tailwind CSS
+│   ├── Header.jsx              ← Styled-Components
+│   ├── StudentCard.jsx         ← CSS Modules
+│   ├── EnrollForm.jsx          ← Material UI
+│   ├── Badge.jsx, StatBar.jsx, Button.jsx, ClassButton.jsx,
+│   │   StatusMessage.jsx, StudentList.jsx   ← shared App.css classes
+└── pages/
+    ├── HomePage.jsx             → /            (the "roster page")
+    ├── StudentDetailPage.jsx    → /students/:id (Plain/External CSS)
+    ├── StudentDetailPage.css
+    ├── EnrollPage.jsx           → /enroll
+    └── NotFoundPage.jsx         → *            (Inline styles)
+```
+
+---
+
+## Step 1 — Styling Methods (one per component, why)
+
+| Component | Method | Why this one |
+|---|---|---|
+| `Navbar.jsx` | **Tailwind CSS** | Nav bars are mostly layout + state-driven classes (active link, hamburger open/closed). Tailwind's utility classes let the active/inactive/responsive variants live right next to the markup with no separate stylesheet to keep in sync. |
+| `StudentCard.jsx` | **CSS Modules** (`styles/StudentCard.module.css`) | Cards are repeated many times per page, so scoping matters — `.card`, `.body`, `.name` can't leak into or clash with any other component's classes. CSS Modules also let the score-based border color be a data-driven class swap (`.borderGreen` / `.borderYellow` / `.borderRed`) instead of inline calculations. |
+| `Header.jsx` | **Styled-Components** | The header is themeable (colors come from `theme.js` via a `ThemeProvider`), and styled-components' `${({ theme }) => theme.colors.primary}` pattern is the most direct way to bind a component's look to a shared JS theme object. |
+| `EnrollForm.jsx` | **Material UI** | A form with selects, checkboxes, validation states, and responsive stacking benefits from MUI's built-in accessibility and `Grid`/`TextField`/`Select` components — far less boilerplate than hand-rolling the same behavior. |
+| `NotFoundPage.jsx` | **Inline styles** | A single, static, never-reused layout (centered 404 message). It's not worth a CSS file or module for one component that never changes shape — a plain style object keeps everything in one place. |
+| `StudentDetailPage.jsx` | **Plain/External CSS** (`StudentDetailPage.css`) | A one-off detail layout (avatar column + info column + table) that's easiest to reason about as a normal stylesheet with plain class names, imported only here. |
+
+Everything else (`Badge`, `StatBar`, `Button`, `ClassButton`, `StatusMessage`,
+`StudentList`) keeps using the shared classes in `App.css`, since the brief
+only requires the six components above to each demonstrate a **different**
+method.
+
+---
+
+## Step 2 — Responsive Design
+
+- **Roster grid** (`StudentList.jsx`): `grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5` — 1 column on mobile, 2 on tablet, 3 on desktop.
+- **Navbar** (`Navbar.jsx`): links are `hidden md:flex`; below `md` a hamburger button (`☰` / `✕`) toggles a stacked mobile menu.
+- **EnrollForm** (`EnrollForm.jsx`): every MUI `Grid` item uses `size={{ xs: 12, md: 6 }}` (or `size={12}` for full-width fields), so the form stacks to one column on mobile and pairs up on `md` and above.
+
+---
+
+## Step 3 — Theme Support
+
+`src/styles/theme.js` exports `colors` (primary, secondary, danger, success,
+warning, background, surface, text, textMuted) and `spacing` tokens
+(xs → xl). It's consumed two ways so every styling method can share one
+palette:
+
+1. **Styled-Components** — `Header.jsx` wraps its markup in a
+   `<ThemeProvider theme={theme}>` and reads `theme.colors.primary` /
+   `theme.colors.text` directly inside its `styled.*` templates.
+2. **CSS variables** — the same values are duplicated as `--color-primary`,
+   `--color-text`, etc. in `index.css`, so plain CSS, CSS Modules, and
+   Tailwind (via `bg-[var(--color-primary)]`-style arbitrary values) can
+   all reference the identical colors without importing a JS file.
+
+---
+
+## Step 4 — Context API (replacing prop drilling)
+
+**Before (Stage 4):** `App.jsx` held `students`, `loading`, `error` in
+`useState`, fetched data in a `useEffect`, and passed `students` /
+`onEnroll` down through `Navbar`, `HomePage` → `StudentList` → `StudentCard`,
+`EnrollPage` → `EnrollForm`, and `StudentDetailPage` as props — a student
+enrolled on `/enroll` only reached the roster because `onEnroll` had been
+threaded through three separate components.
+
+**After (Stage 5):** `src/context/StudentContext.jsx` holds all of that in
+a `useReducer` store (`SET_STUDENTS`, `ADD_STUDENT`, `REMOVE_STUDENT`,
+`SET_LOADING`, `SET_ERROR`). `<StudentProvider>` wraps `<App />` in
+`main.jsx`, and every component that needs roster data calls the
+`useStudents()` custom hook directly — `Header`, `HomePage`, `EnrollForm`,
+and `StudentDetailPage` no longer receive `students`/`onEnroll` as props at
+all. No component calls `useContext(StudentContext)` directly; they all go
+through `useStudents()`.
+
+---
+
+## Step 5 — useMemo & useCallback
+
+Both live in `HomePage.jsx` (the roster page):
+
+- **`averageScore`** — `useMemo(() => getAverage(students), [students])`.
+  Depends only on `students`, so typing in the filter box (which doesn't
+  change the roster) never re-triggers it. A `console.log` inside proves it.
+- **`filteredStudents`** — `useMemo(() => …, [students, filter])`. Filters
+  by name/track and attaches each student's letter grade; recalculates only
+  when the roster or the filter text changes.
+- **`handleEnroll`** — `useCallback((student) => dispatch(...), [dispatch])`.
+  Since `dispatch` from `useReducer` is a stable reference, this callback
+  keeps the same identity across re-renders instead of being recreated
+  every time `HomePage` renders.
+
+---
+
+## Step 6 — Custom Hooks
+
+- **`useFetch(url)`** (`src/hooks/useFetch.js`) — fetches on mount, returns
+  `{ data, loading, error, refetch }`. `HomePage.jsx` uses it against the
+  RandomUser API instead of the raw `useEffect` + `fetch` that used to live
+  in `App.jsx`, then dispatches the result into `StudentContext`.
+- **`useLocalStorage(key, initialValue)`** (`src/hooks/useLocalStorage.js`)
+  — behaves like `useState` but reads/writes to `localStorage`. `HomePage.jsx`
+  uses it to persist the roster filter text (`studentFilter`) so it survives
+  a page refresh.
+
+---
+
+## Step 7 — useRef: Focus & Scroll
+
+- **Auto-focus:** `EnrollForm.jsx` holds a `useRef` on the First Name
+  `TextField` and focuses it in a `useEffect` that runs once on mount.
+- **Scroll to top:** `HomePage.jsx` holds a `useRef` on a sentinel `<div>`
+  at the very top of the roster page and calls `scrollIntoView` in a
+  mount-time `useEffect` — so navigating back from `/enroll` after a
+  successful enrollment lands the user at the top of the roster.
+
+---
+
+## Routing (unchanged from Stage 4)
+
+| Route | Component | Description |
+|---|---|---|
+| `/` | `HomePage` | Roster grid, filter box, refresh + quick-add buttons |
+| `/students/:id` | `StudentDetailPage` | Full profile for one student, with a Remove button |
+| `/enroll` | `EnrollPage` | Enroll form; redirects to `/` on success |
+| `*` | `NotFoundPage` | Friendly 404 catch-all |
+
+---
+
 # KodeCamp 6.0 — Stage 4: Student Enrollment Portal with Routing
 
 An extension of the Stage 3 Student Enrollment Portal, now with full client-side routing via **React Router v6**.

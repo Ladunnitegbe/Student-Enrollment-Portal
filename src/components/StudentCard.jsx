@@ -1,22 +1,33 @@
 import { Link } from "react-router-dom";
 import Badge from "./Badge";
 import StatBar from "./StatBar";
+import styles from "../styles/StudentCard.module.css";
+
+const borderClassForGrade = (grade) => {
+  if (grade === "A" || grade === "B") return styles.borderGreen;
+  if (grade === "C") return styles.borderYellow;
+  return styles.borderRed;
+};
 
 const StudentCard = ({
   student: { id, firstName, lastName, track, email, score, isActive, avatar, grade },
 }) => {
   return (
-    <div className={`student-card ${!isActive ? "inactive" : ""}`}>
-      <img src={avatar} alt={`${firstName} ${lastName}`} className="avatar" />
+    <div
+      className={`${styles.card} ${borderClassForGrade(grade)} ${
+        !isActive ? styles.cardInactive : ""
+      }`}
+    >
+      <img src={avatar} alt={`${firstName} ${lastName}`} className={styles.avatar} />
 
-      <div className="card-body">
-        <h2 className="student-name">
-          <Link to={`/students/${id}`} className="name-link">
+      <div className={styles.body}>
+        <h2 className={styles.name}>
+          <Link to={`/students/${id}`} className={styles.nameLink}>
             {firstName} {lastName}
           </Link>
         </h2>
 
-        <p className="student-meta">
+        <p className={styles.meta}>
           {track} {email && `· ${email}`}
         </p>
 
@@ -31,7 +42,7 @@ const StudentCard = ({
 
         <StatBar score={score} />
 
-        <Link to={`/students/${id}`} className="btn btn-view">
+        <Link to={`/students/${id}`} className={styles.viewButton}>
           View Profile →
         </Link>
       </div>

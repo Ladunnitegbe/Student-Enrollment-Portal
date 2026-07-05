@@ -1,0 +1,89 @@
+/* Styling method: CSS Modules — class names below are hashed/scoped
+   locally by Vite, so they can never collide with class names in other
+   components' stylesheets (App.css, other .module.css files, etc). */
+
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border-left: 4px solid var(--card-border-color, var(--color-border));
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* Hover shadow, required by the brief */
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+}
+
+.cardInactive {
+  opacity: 0.65;
+}
+
+.avatar {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  display: block;
+}
+
+.body {
+  padding: 1rem;
+}
+
+.name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text);
+  margin-bottom: 0.2rem;
+}
+
+.nameLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.nameLink:hover {
+  color: var(--color-primary-light);
+}
+
+.meta {
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.viewButton {
+  display: block;
+  margin-top: 0.85rem;
+  text-align: center;
+  background: var(--color-surface-alt);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 0.6rem 1.25rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.viewButton:hover {
+  background: var(--color-primary-dim);
+  color: var(--color-primary-light);
+  border-color: rgba(108, 99, 255, 0.3);
+}
+
+/* Score-based border colors — Grade A/B = green, C = yellow, D/F = red */
+.borderGreen {
+  --card-border-color: var(--color-success);
+}
+
+.borderYellow {
+  --card-border-color: #eab308;
+}
+
+.borderRed {
+  --card-border-color: var(--color-danger);
+}

@@ -1,36 +1,40 @@
-import { useParams, Link } from "react-router-dom";
+import "./StudentDetailPage.css";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import Badge from "../components/Badge";
 import StatBar from "../components/StatBar";
+import { useStudents } from "../context/StudentContext";
+import { getGrade } from "../utils/constants";
 
-const StudentDetailPage = ({ students }) => {
+const StudentDetailPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { students, dispatch } = useStudents();
+
   const student = students.find((s) => s.id === id);
 
   if (!student) {
     return (
-      <div className="not-found-page">
-        <p className="not-found-code">404</p>
-        <h1 className="not-found-title">Student Not Found</h1>
-        <p className="not-found-sub">
-          No student with ID <code>{id}</code> exists in the roster.
-        </p>
-        <Link to="/" className="btn btn-home">
-          ← Back to Roster
-        </Link>
+      <div className="detail-page">
+        <div className="not-found-inline">
+          <h1 className="detail-name">Student Not Found</h1>
+          <p style={{ color: "var(--color-text-muted)", margin: "0.75rem 0 1.25rem" }}>
+            No student with ID <code>{id}</code> exists in the roster.
+          </p>
+          <Link to="/" className="back-link">
+            ← Back to Roster
+          </Link>
+        </div>
       </div>
     );
   }
 
-  const {
-    firstName,
-    lastName,
-    track,
-    email,
-    score,
-    isActive,
-    avatar,
-    grade,
-  } = student;
+  const { firstName, lastName, track, email, score, isActive, avatar } = student;
+  const grade = getGrade(score);
+
+  const handleRemove = () => {
+    dispatch({ type: "REMOVE_STUDENT", payload: id });
+    navigate("/");
+  };
 
   return (
     <div className="detail-page">
@@ -40,11 +44,7 @@ const StudentDetailPage = ({ students }) => {
 
       <div className="detail-card">
         <div className="detail-avatar-col">
-          <img
-            src={avatar}
-            alt={`${firstName} ${lastName}`}
-            className="detail-avatar"
-          />
+          <img src={avatar} alt={`${firstName} ${lastName}`} className="detail-avatar" />
           <div className="badge-group detail-badges">
             <Badge label={track} type="track" />
             <Badge
@@ -88,6 +88,10 @@ const StudentDetailPage = ({ students }) => {
           <div className="detail-stat">
             <StatBar score={score} label="Performance" />
           </div>
+
+          <button type="button" className="detail-remove-btn" onClick={handleRemove}>
+            Remove Student
+          </button>
         </div>
       </div>
     </div>
